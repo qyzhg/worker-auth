@@ -1,10 +1,10 @@
-mod svc;
-mod models;
-mod utils;
 mod handlers;
+mod models;
+mod svc;
+mod utils;
 
-use worker::*;
 use utils::return_response;
+use worker::*;
 
 #[event(fetch)]
 async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
@@ -19,4 +19,3 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .run(req, env)
         .await
 }
-
