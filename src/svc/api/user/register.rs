@@ -52,31 +52,17 @@ pub async fn register(body: Value, ctx: RouteContext<()>) -> Result<String, (Sta
     console_log!("邮箱格式校验通过！");
     // 检查用户名是否存在
     match db
-        .prepare(r#"SELECT * FROM users WHERE name = ?"#)
+        .prepare(r#"SELECT id FROM users WHERE name = ?"#)
         .bind(&[user.name.clone().into()])
     {
         Ok(pre) => {
-            let result = pre.all().await;
+            let result = pre.first::<usize>(Some("id")).await;
             match result {
-                Ok(rows) => {
-                    console_log!("用户名查询成功{:?}", rows.results::<models::user::User>());
-                    match rows.results::<models::user::User>() {
-                        Ok(rows) => {
-                            if rows.len() > 0 {
-                                console_error!("用户名{}已存在!", user.name);
-                                return Err((
-                                    StatusCode::BadRequest,
-                                    Error::msg(format!("用户名[{}]已存在", user.name)),
-                                ));
-                            }
-                        }
-                        Err(err) => {
-                            console_error!("读取用户名查询数据失败::{}", err);
-                            return Err((
-                                StatusCode::InternalServerError,
-                                Error::msg(format!("读取用户名查询数据失败::{:?}", err)),
-                            ));
-                        }
+                Ok(row) => {
+                    console_log!("用户名查询成功");
+                    if let Some(id) = row {
+                        console_error!("用户名已存在！id:{}", id);
+                        return Err((StatusCode::BadRequest, Error::msg("用户名已存在!")));
                     }
                 }
                 Err(e) => {
@@ -96,31 +82,24 @@ pub async fn register(body: Value, ctx: RouteContext<()>) -> Result<String, (Sta
     console_log!("用户名冲突校验通过！");
     // 检查邮箱是否存在
     match db
-        .prepare(r#"SELECT * FROM users WHERE email = ?"#)
+        .prepare(r#"SELECT id FROM users WHERE email = ?"#)
         .bind(&[user.email.clone().into()])
     {
         Ok(pre) => {
-            let result = pre.all().await;
+            let result = pre.first::<usize>(Some("id")).await;
             match result {
-                Ok(rows) => match rows.results::<models::user::User>() {
-                    Ok(rows) => {
-                        if rows.len() > 0 {
-                            console_error!("邮箱{}已存在!", user.email);
-                        }
+                Ok(row) => {
+                    console_log!("邮箱查询成功");
+                    if let Some(id) = row {
+                        console_error!("邮箱已存在！id: {}", id);
+                        return Err((StatusCode::BadRequest, Error::msg("邮箱已存在!")));
                     }
-                    Err(err) => {
-                        console_error!("读取邮箱查询数据失败::{}", err);
-                        return Err((
-                            StatusCode::InternalServerError,
-                            Error::msg(format!("读取邮箱查询数据失败::{:?}", err)),
-                        ));
-                    }
-                },
+                }
                 Err(e) => {
-                    console_error!("读取邮箱查询数据失败::{}", e);
+                    console_error!("邮箱查询失败::{}", e);
                     return Err((
                         StatusCode::InternalServerError,
-                        Error::msg(format!("读取邮箱查询数据失败::{:?}", e)),
+                        Error::msg(format!("邮箱查询失败::{:?}", e.to_string())),
                     ));
                 }
             }
