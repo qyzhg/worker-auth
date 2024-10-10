@@ -9,3 +9,6 @@ command = "cargo install -q worker-build && worker-build --release"
 binding = "DB"
 database_name = "d1-auth"
 database_id = "1357668b-3fdf-4b91-b618-63191d8eb37f"
+
+[observability]
+enabled = true
