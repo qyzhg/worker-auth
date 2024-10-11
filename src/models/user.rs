@@ -7,7 +7,7 @@ pub(crate) struct User {
     #[serde(rename = "name")]
     pub(crate) name: String,
     #[serde(rename = "email")]
-    pub(crate) email: String,
+    pub(crate) email: Option<String>,
     #[serde(rename = "password")]
     pub(crate) password: String,
     #[serde(rename = "created_at")]

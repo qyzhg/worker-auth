@@ -41,7 +41,7 @@ pub(crate) async fn login_handler(
         }
     };
     return match svc::api::user::login::login(user, ctx).await{
-        Ok(msg) => return_response::ok(Some(msg), None),
+        Ok(r) => return_response::ok(Some(r.0), r.1),
         Err(e) => return_response::err(e.0, Some(format!("登录失败::{:?}", e.1)), None),
     }
 }

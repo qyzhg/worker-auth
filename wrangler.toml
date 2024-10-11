@@ -16,3 +16,6 @@ enabled = true
 [[kv_namespaces]]
 binding = "kv_auth"
 id = "ef80fc66d629499aa2d9d1eec32073c9"
+
+[env.dev]
+vars = { jwt-secret = "7FAF2B8C-CEC8-4103-915F-CDD284B6BD4E" }

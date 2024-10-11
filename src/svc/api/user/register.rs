@@ -46,7 +46,13 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
     }
     console_log!("密码格式校验通过！");
     // 邮箱格式校验
-    if !utils::validate::validate_email(&user.email) {
+    let email = match user.email {
+        None => {
+            return Err((StatusCode::BadRequest, Error::msg("邮箱不能为空")));
+        }
+        Some(email) => email
+    };
+    if !utils::validate::validate_email(&*email) {
         return Err((StatusCode::BadRequest, Error::msg("邮箱格式不正确")));
     }
     console_log!("邮箱格式校验通过！");
@@ -83,7 +89,7 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
     // 检查邮箱是否存在
     match db
         .prepare(r#"SELECT id FROM users WHERE email = ?"#)
-        .bind(&[user.email.clone().into()])
+        .bind(&[email.clone().into()])
     {
         Ok(pre) => {
             let result = pre.first::<usize>(Some("id")).await;
@@ -127,7 +133,7 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
         .prepare(r#"INSERT INTO users (name, email, password) VALUES (?, ?, ?);"#)
         .bind(&[
             user.name.clone().into(),
-            user.email.clone().into(),
+            email.clone().into(),
             password_hash.clone().into(),
         ]) {
         Ok(pre) => match pre.run().await {
