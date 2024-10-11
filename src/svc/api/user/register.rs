@@ -7,19 +7,13 @@ use argon2::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use rand_core::OsRng;
-use serde_json::Value;
 use worker::{console_error, console_log, RouteContext};
 
-pub async fn register(body: Value, ctx: RouteContext<()>) -> Result<String, (StatusCode, Error)> {
+pub async fn register(user: models::user::User, ctx: RouteContext<()>) -> Result<String, (StatusCode, Error)> {
     // 从上下文中获取d1数据库实例
     let db = match ctx.env.d1("DB") {
         Ok(db) => db,
         Err(e) => return Err((StatusCode::InternalServerError, Error::from(e))),
-    };
-    // 将body解析为用户结构体
-    let user: models::user::User = match serde_json::from_value(body) {
-        Ok(user) => user,
-        Err(e) => return Err((StatusCode::BadRequest, Error::from(e))),
     };
     // 密码base64解码
     let password = match general_purpose::STANDARD.decode(user.password) {

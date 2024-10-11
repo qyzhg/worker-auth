@@ -12,3 +12,7 @@ database_id = "1357668b-3fdf-4b91-b618-63191d8eb37f"
 
 [observability]
 enabled = true
+
+[[kv_namespaces]]
+binding = "kv_auth"
+id = "ef80fc66d629499aa2d9d1eec32073c9"

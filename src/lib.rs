@@ -3,7 +3,6 @@ mod models;
 mod svc;
 mod utils;
 
-use utils::return_response;
 use worker::*;
 
 #[event(fetch)]
