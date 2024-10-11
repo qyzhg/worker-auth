@@ -24,3 +24,24 @@ pub(crate) async fn register_handler(
         Err(e) => return_response::err(e.0, Some(format!("注册失败::{:?}", e.1)), None),
     };
 }
+
+pub(crate) async fn login_handler(
+    mut req: Request,
+    ctx: RouteContext<()>,
+) -> worker::Result<Response> {
+    // 解析body参数
+    let user = match req.json::<models::user::User>().await {
+        Ok(body) => body,
+        Err(e) => {
+            return return_response::err(
+                StatusCode::InternalServerError,
+                Some(format!("参数解析失败::{:?}", e)),
+                None,
+            );
+        }
+    };
+    return match svc::api::user::login::login(user, ctx).await{
+        Ok(msg) => return_response::ok(Some(msg), None),
+        Err(e) => return_response::err(e.0, Some(format!("登录失败::{:?}", e.1)), None),
+    }
+}

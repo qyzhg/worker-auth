@@ -9,29 +9,35 @@ use base64::{engine::general_purpose, Engine as _};
 use rand_core::OsRng;
 use worker::{console_error, console_log, RouteContext};
 
-pub async fn register(user: models::user::User, ctx: RouteContext<()>) -> Result<String, (StatusCode, Error)> {
+pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) -> Result<String, (StatusCode, Error)> {
     // 从上下文中获取d1数据库实例
     let db = match ctx.env.d1("DB") {
         Ok(db) => db,
         Err(e) => return Err((StatusCode::InternalServerError, Error::from(e))),
     };
+    // 从上下文中获取kv数据库实例
+    // let kv = match ctx.env.kv("kv_auth") {
+    //     Ok(kv) => kv,
+    //     Err(e) => return Err((StatusCode::InternalServerError, Error::from(e))),
+    // };
+    // todo: 校验验证码是否正确
+    // let kv_captcha =  match kv.get(&*user.email).text().await{
+    //     Ok(Some(value)) => value,
+    //     Ok(None) => {
+    //         return Err((StatusCode::BadRequest, Error::msg("验证码不存在")))
+    //     }
+    //     Err(e) => {
+    //         return Err((
+    //             StatusCode::InternalServerError,
+    //             Error::msg(format!("kv获取验证码失败::{:?}", e)),
+    //         ))
+    //     }
+    // };
+    // console_log!("kv验证码读取成功！::{}", kv_captcha);
     // 密码base64解码
-    let password = match general_purpose::STANDARD.decode(user.password) {
-        Ok(bytes) => match std::str::from_utf8(&bytes) {
-            Ok(str) => str.to_string(),
-            Err(e) => {
-                return Err((
-                    StatusCode::InternalServerError,
-                    Error::msg(format!("base64解码失败::{:?}", e)),
-                ))
-            }
-        },
-        Err(e) => {
-            return Err((
-                StatusCode::InternalServerError,
-                Error::msg(format!("base64解码失败::{:?}", e)),
-            ))
-        }
+    let password = match utils::b64::base64_decode(user.password) {
+        Ok(password) => password,
+        Err(e) => return Err((StatusCode::BadRequest, Error::msg(e))),
     };
     console_log!("密码base64解码成功::{}", password);
     // 密码格式校验
