@@ -1,7 +1,7 @@
 use crate::models::status_code::StatusCode;
 use crate::{models, svc};
 use crate::utils::return_response;
-use worker::{console_log, Request, Response, RouteContext};
+use worker::{console_error, console_log, Request, Response, RouteContext};
 
 pub(crate) async fn register_handler(
     mut req: Request,
