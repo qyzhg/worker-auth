@@ -35,7 +35,7 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
     // };
     // console_log!("kv验证码读取成功！::{}", kv_captcha);
 
-    //! ### 用户信息校验
+    // 用户信息校验
     // 密码base64解码
     let password = match utils::b64::base64_decode(user.password) {
         Ok(password) => password,
@@ -118,7 +118,7 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
         }
     }
     console_log!("邮箱冲突校验通过！");
-    //! ### 开始创建用户
+    // 开始创建用户
     // 生成一个随机盐
     let salt = SaltString::generate(&mut OsRng);
     // 创建 Argon2 默认实例，使用 Argon2id v1.3 算法

@@ -53,7 +53,7 @@ pub(crate) async fn login(user: models::user::User, ctx: RouteContext<()>) -> Re
     if !argon2.verify_password(password.as_ref(), &parsed_hash).is_ok(){
         return Err((StatusCode::Unauthorized, Error::from(anyhow::anyhow!("用户名/密码错误"))))
     };
-    //! # 生成jwt
+    // 生成jwt
     // 获取用户id
     let user_id = match db_user.id{
         None => {
