@@ -5,12 +5,12 @@ use argon2::{
     password_hash::{PasswordHasher, SaltString},
     Argon2,
 };
-use base64::{engine::general_purpose, Engine as _};
 use rand_core::OsRng;
 use worker::{console_error, console_log, RouteContext};
 
 pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) -> Result<String, (StatusCode, Error)> {
-    // 从上下文中获取d1数据库实例
+    //! ### 从上下文中获取数据库实例
+    // 获取D1数据库
     let db = match ctx.env.d1("DB") {
         Ok(db) => db,
         Err(e) => return Err((StatusCode::InternalServerError, Error::from(e))),
@@ -34,6 +34,8 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
     //     }
     // };
     // console_log!("kv验证码读取成功！::{}", kv_captcha);
+
+    //! ### 用户信息校验
     // 密码base64解码
     let password = match utils::b64::base64_decode(user.password) {
         Ok(password) => password,
@@ -116,8 +118,7 @@ pub(crate) async fn register(user: models::user::User, ctx: RouteContext<()>) ->
         }
     }
     console_log!("邮箱冲突校验通过！");
-    // 创建用户
-
+    //! ### 开始创建用户
     // 生成一个随机盐
     let salt = SaltString::generate(&mut OsRng);
     // 创建 Argon2 默认实例，使用 Argon2id v1.3 算法

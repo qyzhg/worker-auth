@@ -1,7 +1,7 @@
 use crate::models::status_code::StatusCode;
 use crate::{models, svc};
 use crate::utils::return_response;
-use worker::{Request, Response, RouteContext};
+use worker::{console_log, Request, Response, RouteContext};
 
 pub(crate) async fn register_handler(
     mut req: Request,
@@ -40,6 +40,7 @@ pub(crate) async fn login_handler(
             );
         }
     };
+    console_log!("req:{:?}", req);
     return match svc::api::user::login::login(user, ctx).await{
         Ok(r) => return_response::ok(Some(r.0), r.1),
         Err(e) => return_response::err(e.0, Some(format!("登录失败::{:?}", e.1)), None),

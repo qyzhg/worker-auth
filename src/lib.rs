@@ -13,10 +13,14 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     let router = Router::new();
     // 接口定义
     router
+        .get_async("/", |_req, ctx| async move {
+            Response::ok("来了老弟")
+        })
         // 用户注册
         .post_async("/api/user/register", handlers::api::user::register_handler)
         // 用户登录
         .post_async("/api/user/login", handlers::api::user::login_handler)
+        // 用户组管理
         .run(req, env)
         .await
 }

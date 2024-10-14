@@ -53,26 +53,49 @@ pub(crate) async fn login(user: models::user::User, ctx: RouteContext<()>) -> Re
     if !argon2.verify_password(password.as_ref(), &parsed_hash).is_ok(){
         return Err((StatusCode::Unauthorized, Error::from(anyhow::anyhow!("用户名/密码错误"))))
     };
-    // 生成jwt
+    //! # 生成jwt
+    // 获取用户id
+    let user_id = match db_user.id{
+        None => {
+            return Err((StatusCode::InternalServerError, Error::from(anyhow::anyhow!("用户id为空"))))
+        }
+        Some(id) => id
+    };
+    // 获取用户邮箱
+    let user_email = match db_user.email{
+        None => {
+            return Err((StatusCode::InternalServerError, Error::from(anyhow::anyhow!("用户email为空"))))
+        },
+        Some(email) => email
+    };
+    // 实例化 claims
     let claims = models::claims::Claims{
-        sub: db_user.id.unwrap().to_string(),
+        id: user_id,
+        sub: db_user.name,
         group: "user".to_string(),
+        email: user_email,
         exp: 0,
     };
-    let time_options = TimeOptions::default();
-    let jwt_secret = match ctx.env.var("jwt-secret"){
+    // 从环境变量中获取秘钥
+    let jwt_secret = match ctx.env.var("jwt-secret-key-v1"){
         Ok(secret) => secret.to_string(),
         Err(e) => return Err((StatusCode::InternalServerError, Error::from(e)))
     };
     console_log!("jwt-secret::{}", jwt_secret);
     let key = Hs256Key::new(jwt_secret);
-    let header = Header::empty().with_key_id("1");
+    let header = Header::empty().with_key_id("key-v1");
     let claims = Claims::new(claims)
-        .set_duration_and_issuance(&time_options, Duration::hours(72))
+        .set_duration_and_issuance(
+            &TimeOptions::default(),
+            Duration::hours(72)
+        )
         .set_not_before(Utc::now());
     let token_string = match Hs256.token(&header, &claims, &key){
         Ok(token) => token,
-        Err(e) => return Err((StatusCode::InternalServerError, Error::msg(e.to_string())))
+        Err(e) => return Err(
+            (StatusCode::InternalServerError,
+             Error::msg(e.to_string()))
+        )
     };
     console_log!("生成jwt成功::{}", token_string);
     Ok(("登录成功".to_string(), Some(json!({"jwt": token_string}))))
